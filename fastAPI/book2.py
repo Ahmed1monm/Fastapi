@@ -7,6 +7,14 @@ from uuid import UUID
 app = FastAPI()
 
 
+class BookNoRating(BaseModel):
+    title: str = Field(min_length=5)
+    description: Optional[str] = Field(min_length=5, max_length=150)
+    author: str = Field(min_length=2, max_length=100)
+
+    id: UUID
+
+
 class Book(BaseModel):
     title: str = Field(min_length=5)
     description: Optional[str] = Field(min_length=5, max_length=150)
@@ -56,6 +64,32 @@ async def read_all_books(books_to_return: Optional[int] = None):
             i += 1
         return new_books
     return Books
+
+
+@app.get('/book/{id}')
+async def read_book(book_id: UUID):
+    counter = 0
+    for book in Books:
+        if book_id == book.id:
+            return Books[counter - 1]
+    raise HTTPException(status_code=400, detail=f'No book with this id = {book_id}')
+
+
+'''
+
+    Here FastAPI parse your old model Book to the new model BookNoRating by passing it to (Get) in the value 
+    response_model 
+
+'''
+
+
+@app.get('/book/no-rating/{id}', response_model=BookNoRating)
+async def read_book_no_rating(book_id: UUID):
+    counter = 0
+    for book in Books:
+        if book_id == book.id:
+            return Books[counter - 1]
+    raise HTTPException(status_code=400, detail=f'No book with this id = {book_id}')
 
 
 def create_books_no_api():
