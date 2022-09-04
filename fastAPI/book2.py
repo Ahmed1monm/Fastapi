@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status, Form, Header
 from pydantic import BaseModel, Field
 from uuid import UUID
 
@@ -39,7 +39,7 @@ class Book(BaseModel):
 Books = []
 
 
-@app.post('/')
+@app.post('/', status_code=status.HTTP_201_CREATED)  # Add your own status code
 async def add_book(book: Book):
     Books.append(book)
     return {
@@ -131,3 +131,13 @@ async def delete_book(book_id: UUID):
             }
 
     raise HTTPException(status_code=400, detail=f'There is No books with id = {book_id}')
+
+
+@app.post('/login')
+async def login(book_pos: int, user_name: Optional[str] = Header(None), password: Optional[str] = Header(None)):
+    c_username = 'FastAPIUser'
+    c_password = 'test1234!'
+
+    if user_name == c_username and password == c_password:
+        return Books[book_pos]
+    return 'Invalid User'
