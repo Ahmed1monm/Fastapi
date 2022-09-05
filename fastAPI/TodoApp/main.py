@@ -62,3 +62,37 @@ async def get_todo(todo_id: int, db: Session = Depends(get_db)):
 
 def http_exception():
     return HTTPException(status_code=404, detail='Todo not found')
+
+
+@app.put('/todo')
+async def edit_todo(todo_id: int, todo: TodoPost, db: Session = Depends(get_db)):
+    todo_model = db.query(models.Todo).filter(models.Todo.id == todo_id).first()
+
+    if todo_model is None:
+        raise http_exception()
+
+    todo_model.title = todo.title
+    todo_model.description = todo.description
+    todo_model.priority = todo.priority
+    todo_model.complete = todo.complete
+
+    db.add(todo_model)
+    db.commit()
+
+    return {
+        'msg': 'Success',
+        'data': todo_model
+    }
+
+
+@app.delete('/{todo_id}')
+async def delete_todo(todo_id: int, db: Session = Depends(get_db)):
+    todo_model = db.query(models.Todo).filter(models.Todo.id == todo_id).first()
+    if todo_model is None:
+        raise http_exception()
+    db.query(models.Todo).filter(models.Todo.id == todo_id).delete()
+    db.commit()
+
+    return {
+        'msg': 'deleted Successfully'
+    }
