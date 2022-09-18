@@ -36,8 +36,8 @@ def verify_password(plain_password, hashed_password):
 
 
 def authenticate_user(username: str, password: str, db):
-    user = db.query(models.Users)\
-        .filter(models.Users.username == username)\
+    user: models.Users = db.query(models.Users) \
+        .filter(models.Users.username == username) \
         .first()
 
     if not user:
@@ -45,6 +45,25 @@ def authenticate_user(username: str, password: str, db):
     if not verify_password(password, user.hashed_password):
         return False
     return user
+
+
+SECRET_KEY = "ahmed-mohamed_abdul-monem"
+ALGORITHM = "HS256"
+
+
+def create_access_token(username: str, userid: int, expires_delta: Optional[timedelta] = None):
+    encode = {
+        "sub": username,
+        "id": userid
+    }
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    encode.update({
+        "exp": expire
+    })
+    return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 class CreateUser(BaseModel):
@@ -82,4 +101,11 @@ async def login_user_for_token(form_data: OAuth2PasswordRequestForm = Depends(),
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(status_code=404, detail='User not found')
-    return 'User validate'
+    token_expire = timedelta(minutes=20)
+    token = create_access_token(user.username, user.id, token_expire)
+    return {
+        "token": token
+    }
+
+
+oauth2_token = OAuth2PasswordBearer(tokenUrl='token')
