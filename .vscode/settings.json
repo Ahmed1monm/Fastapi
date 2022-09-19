@@ -1,9 +1,14 @@
 {
     "cSpell.words": [
         "fastapi",
+        "passlib",
         "pydantic",
         "Sessionlocal",
+        "sessionmaker",
         "sqlalchemy",
         "todos"
+    ],
+    "python.analysis.extraPaths": [
+        "./fastAPI/TodoApp/routers"
     ]
 }

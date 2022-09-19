@@ -1,6 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import Depends, HTTPException, APIRouter
 import models
-from typing import Optional
+from typing import Dict, Optional
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -9,7 +9,13 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 
-app = FastAPI()
+router = APIRouter(
+    prefix="/auth",
+    tags=["auth"],
+    responses={
+        404: {"description": "Not found"}
+    }
+)
 
 bcrypt_context = CryptContext(
     schemes=['bcrypt'],
@@ -75,7 +81,7 @@ class CreateUser(BaseModel):
     is_active: bool
 
 
-@app.post('/create/user')
+@router.post('/create/user')
 async def create_user(user: CreateUser, db: Session = Depends(get_db)):
     user_model = models.Users()
 
@@ -96,7 +102,7 @@ async def create_user(user: CreateUser, db: Session = Depends(get_db)):
     }
 
 
-@app.post('/token')
+@router.post('/token')
 async def login_user_for_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
