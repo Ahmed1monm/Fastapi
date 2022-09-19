@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from database import Sessionlocal, engine
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from datetime import datetime, timedelta
-from jose import jwt
+from jose import jwt, JWTError
 
 app = FastAPI()
 
@@ -109,3 +109,19 @@ async def login_user_for_token(form_data: OAuth2PasswordRequestForm = Depends(),
 
 
 oauth2_token = OAuth2PasswordBearer(tokenUrl='token')
+
+
+async def get_current_user(token: str = Depends(oauth2_token)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+        username: str = payload.get("sub"),
+        userid: int = payload.get("id")
+        if username is None or userid is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        return {
+            "username": username,
+            "id": userid
+        }
+
+    except JWTError:
+        raise HTTPException(status_code=404, detail="User not found")
