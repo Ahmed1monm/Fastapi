@@ -1,8 +1,9 @@
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, HTTPException, Header, UploadFile, Form, Depends
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Union
+
 
 app = FastAPI()
 
@@ -32,15 +33,17 @@ async def create_file(
         "fileb_content_type": fileb.content_type,
     }
 
-fake_db = {}
+async def verify_token(x_token: str = Header(default= None)):
+    if x_token != "fake-super-secret-token":
+        raise HTTPException(status_code=400, detail="X-Token header invalid")
 
 
-class Item(BaseModel):
-    title: str
-    timestamp: datetime
-    description: Union[str, None] = None
+async def verify_key(x_key: str = Header(default= None)):
+    if x_key != "fake-super-secret-key":
+        raise HTTPException(status_code=400, detail="X-Key header invalid")
+    return x_key
 
-@app.put("/items/{id}")
-def update_item(id: str, item: Item):
-    json_compatible_item_data = jsonable_encoder(item)
-    fake_db[id] = json_compatible_item_data
+
+@app.get("/items/deps", dependencies=[Depends(verify_token), Depends(verify_key)])
+async def read_items():
+    return [{"item": "Foo"}, {"item": "Bar"}]

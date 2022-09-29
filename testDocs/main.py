@@ -1,6 +1,8 @@
-from fastapi import FastAPI, Query, Path, File, UploadFile
+from fastapi import Depends, FastAPI, Query, Path, HTTPException, Header
 from typing import List, Union
 from pydantic import BaseModel
+from fastapi.encoders import jsonable_encoder
+from datetime import datetime
 
 app = FastAPI()
 
@@ -102,4 +104,58 @@ async def read_item(item_id: str):
 #         return {"message": "No upload file sent"}
 #     else:
 #         return {"filename": file.filename}
+
+
+
+fake_db = {}
+
+
+class Items(BaseModel):
+    title: str
+    timestamp: datetime
+    description: Union[str, None] = None
+
+@app.put("/items/{id}")
+def update_item(id: str, item: Items):
+    json_compatible_item_data = jsonable_encoder(item)  #* Encode to JSON
+    fake_db[id] = json_compatible_item_data
+
+
+async def common_parameters(
+    q: Union[str, None] = None, skip: int = 0, limit: int = 100
+):
+    return {"q": q, "skip": skip, "limit": limit}
+
+
+@app.get("/commons/")
+async def read_users(commons: dict = Depends(common_parameters)):
+    return commons
+
+#* Dependencies can be any thing "Callable" in python -> Function, Class instance 
+# something() --------- something(x,y,z)
+# What FastAPI actually checks is that it is a "callable" (function, class or anything else) and the parameters defined.
+
+
+
+class CommonQueryParams:
+    def __init__(self, q: Union[str, None] = None, skip: int = 0, limit: int = 100):
+        self.q = q
+        self.skip = skip
+        self.limit = limit
+
+
+fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
+
+
+@app.get("/items/commons")
+async def read_items(commons: CommonQueryParams = Depends(CommonQueryParams)):
+    response = {}
+    if commons.q:
+        response.update({"q": commons.q})
+    items = fake_items_db[commons.skip : commons.skip + commons.limit]
+    response.update({"items": items})
+    return response
+
+
+
 
