@@ -25,10 +25,12 @@ async def read_items():
 # ------------------------------------------------------------------------------
 
 #* Depends with yield
+# Only the code prior to and including the yield statement is executed before sending a response:
 async def get_db():
     db = '' #DBSession()
     try:
         yield db
+    # will executed after the response has been delivered 
     finally:
         db.close()
 
