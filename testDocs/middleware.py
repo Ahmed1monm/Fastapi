@@ -15,17 +15,17 @@ async def add_process_time_header(request: Request, call_next):
     return response
 
 
-#* Use CORSMiddleware 
+# * Use CORSMiddleware
 
 # You can configure it in your FastAPI application using the CORSMiddleware.
 
-#! Import CORSMiddleware.
-#! Create a list of allowed origins (as strings).
-#! Add it as a "middleware" to your FastAPI application.
-#! You can also specify if your backend allows:
-    #* Credentials (Authorization headers, Cookies, etc).
-    #* Specific HTTP methods (POST, PUT) or all of them with the wildcard "*".
-    #* Specific HTTP headers or all of them with the wildcard "*".
+# ! Import CORSMiddleware.
+# ! Create a list of allowed origins (as strings).
+# ! Add it as a "middleware" to your FastAPI application.
+# ! You can also specify if your backend allows:
+# * Credentials (Authorization headers, Cookies, etc).
+# * Specific HTTP methods (POST, PUT) or all of them with the wildcard "*".
+# * Specific HTTP headers or all of them with the wildcard "*".
 
 origins = [
     "http://localhost.tiangolo.com",
